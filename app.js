@@ -24,6 +24,13 @@ const hbs = require('express-hbs');
 const http = require('http');
 const pkg = require('./package.json');
 
+var auth = require("http-auth");
+var basic = auth.basic({
+  authRealm: "Private area",
+  file: __dirname + "/htpasswd",
+  authType: "basic"
+});
+
 module.exports = initApp;
 
 // Initialise the application
@@ -38,7 +45,17 @@ function initApp(config, callback) {
 	const app = new EventEmitter();
 	app.address = null;
 	app.express = express();
+    app.express.use(auth.connect(basic));
 	app.server = http.createServer(app.express);
+
+    // app.server = http.createServer(function(request, response) {
+    //   basic.apply(request, response, function(username) {
+    //     response.writeHead(200, {"Content-Type": "text/plain"});
+    //     response.write("Hello " + username);
+    //     response.end();
+    //   });
+    // });
+
 	app.webservice = createClient(webserviceUrl);
 
 	// Compression
